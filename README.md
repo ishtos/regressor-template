@@ -1,1 +1,1 @@
-# regressor-template
+# classifier-template
