@@ -35,7 +35,7 @@ class MyDataset(Dataset):
             image = self.transforms(image=image)["image"]
 
         if self.phase in ["train", "valid"]:
-            return image, torch.tensor(self.targets[index], dtype=torch.long)
+            return image, torch.tensor(self.targets[index], dtype=torch.float)
         else:
             return image
 
