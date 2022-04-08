@@ -56,7 +56,11 @@ class MyLightningModule(LightningModule):
             loss = mixup_loss(self.loss, logits, target_a, target_b, lam)
         else:
             logits = self.model(images).squeeze(1)
-            loss = self.loss(logits, target)
+            for i, loss_weight, loss_func in self.losses:
+                if i == 0:
+                    loss = loss_weight * loss_func(logits, target)
+                else:
+                    loss += loss_weight * loss_func(logits, target)
 
         preds = logits.sigmoid().detach().cpu()
         target = target.detach().cpu()
@@ -84,7 +88,10 @@ class MyLightningModule(LightningModule):
         loss = torch.stack(loss).mean().item()
 
         d[f"{phase}_loss"] = loss
-        d[f"{phase}_score"] = self.metric(preds=preds, target=target)
+        for i, (metric_name, metric_func) in enumerate(self.metrics):
+            if i == 0:
+                d[f"{phase}_score"] = metric_func(preds=preds, target=target)
+            d[f"{phase}_{metric_name}"] = metric_func(preds=preds, target=target)
         self.log_dict(d, prog_bar=True, logger=True, on_step=False, on_epoch=True)
 
 
